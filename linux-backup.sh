@@ -8,10 +8,10 @@ BLUE="\e[34m"
 PURPLE="\e[35m"
 RESET="\e[0m"
 
-BACKUP_SOURCE_PATH=/home/philipp/work/linux-backup-lobster
-BACKUP_BASE_DIR=test
-LOCAL_TEMP_BACKUP_DIR=/home/philipp/work/linux-backup-lobster/backup_dir
-BACKUP_LOG_FILE=/home/philipp/work/linux-backup-lobster/backup_log.log
+BACKUP_SOURCE_PATH=/home/user/linux-backup-lobster
+BACKUP_BASE_DIR=etc
+LOCAL_TEMP_BACKUP_DIR=/home/user/linux-backup/backup_dir
+BACKUP_LOG_FILE=/home/user/linux-backup/backup_log.log
 BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
 
@@ -38,7 +38,7 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-central-1}"
 
 BACKUP_FILENAME=backup-test.tar.gz
 
-ENV_FILE="/home/philipp/work/linux-backup-lobster/.env"
+ENV_FILE="/home/user/linux-backup/.env"
 
 #
 # functions
