@@ -8,12 +8,16 @@ BLUE="\e[34m"
 PURPLE="\e[35m"
 RESET="\e[0m"
 
-BACKUP_FILENAME=backup-test.tar.gz
-BACKUP_SOURCE_PATH=/home/user/linux-backup-lobster
-BACKUP_BASE_DIR=etc
-LOCAL_TEMP_BACKUP_DIR=/home/user/linux-backup/backup_dir
-BACKUP_LOG_FILE=/home/user/linux-backup/backup_log.log
-ENV_FILE=/home/user/linux-backup/.env
+BACKUP_FILENAME="$BACKUP_FILENAME"
+BACKUP_SOURCE_PATH="$BACKUP_SOURCE_PATH"
+BACKUP_BASE_DIR="$BACKUP_BASE_DIR"
+LOCAL_TEMP_BACKUP_DIR="$LOCAL_TEMP_BACKUP_DIR"
+BACKUP_LOG_FILE="${BACKUP_LOG_FILE:-/var/log}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/.env"
+BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+BACKUP_DAY=$(date +"%Y-%m-%d")
+
 BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
 
