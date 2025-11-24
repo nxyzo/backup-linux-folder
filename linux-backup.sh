@@ -8,10 +8,12 @@ BLUE="\e[34m"
 PURPLE="\e[35m"
 RESET="\e[0m"
 
+BACKUP_FILENAME=backup-test.tar.gz
 BACKUP_SOURCE_PATH=/home/user/linux-backup-lobster
 BACKUP_BASE_DIR=etc
 LOCAL_TEMP_BACKUP_DIR=/home/user/linux-backup/backup_dir
 BACKUP_LOG_FILE=/home/user/linux-backup/backup_log.log
+ENV_FILE="/home/user/linux-backup/.env"
 BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
 
@@ -35,10 +37,6 @@ S3_PREFIX="$S3_PREFIX"
 AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
 AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-central-1}"
-
-BACKUP_FILENAME=backup-test.tar.gz
-
-ENV_FILE="/home/user/linux-backup/.env"
 
 #
 # functions
