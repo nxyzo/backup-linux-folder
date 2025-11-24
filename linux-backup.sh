@@ -86,7 +86,7 @@ function delete_LOCAL_TEMP_BACKUP_DIR() {
 }
 
 function backup_BACKUP_SOURCE_PATH() {
-    log_to_file "Starting backup from $BACKUP_SOURCE_PATH"
+    log_to_file "Starting backup from ${BACKUP_SOURCE_PATH}${BACKUP_BASE_DIR}"
 
     local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
 
