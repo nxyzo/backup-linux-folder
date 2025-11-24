@@ -13,7 +13,7 @@ BACKUP_SOURCE_PATH=/home/user/linux-backup-lobster
 BACKUP_BASE_DIR=etc
 LOCAL_TEMP_BACKUP_DIR=/home/user/linux-backup/backup_dir
 BACKUP_LOG_FILE=/home/user/linux-backup/backup_log.log
-ENV_FILE="/home/user/linux-backup/.env"
+ENV_FILE=/home/user/linux-backup/.env
 BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
 
