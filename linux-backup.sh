@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Define color variables
 YELLOW="\e[33m"
@@ -215,7 +216,6 @@ function upload_backup_to_s3() {
 # main
 #
 
-set -euo pipefail
 load_env
 
 if ! require_vars; then
