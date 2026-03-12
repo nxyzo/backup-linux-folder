@@ -202,6 +202,7 @@ function upload_backup_to_s3() {
 # main
 #
 
+set -euo pipefail
 load_env
 
 if ! check_if_BACKUP_SOURCE_PATH_exists; then
