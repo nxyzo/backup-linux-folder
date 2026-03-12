@@ -42,6 +42,17 @@ function load_env() {
     fi
 }
 
+require_vars() {
+    local missing=0
+    for var in BACKUP_FILENAME BACKUP_SOURCE_PATH BACKUP_BASE_DIR LOCAL_TEMP_BACKUP_DIR; do
+        if [[ -z "${!var}" ]]; then
+            echo -e "${RED}Missing required variable: $var${RESET}"
+            missing=1
+        fi
+    done
+    return $missing
+}
+
 function log_to_file() {
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$BACKUP_LOG_FILE"
 }
@@ -206,6 +217,9 @@ function upload_backup_to_s3() {
 
 set -euo pipefail
 load_env
+
+if ! require_vars; then
+    exit $missing
 
 if ! check_if_BACKUP_SOURCE_PATH_exists; then
     exit 1
