@@ -78,11 +78,12 @@ function backup_BACKUP_SOURCE_PATH() {
 
     local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
 
-    tar -czvf "$backup_file" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
-    if [ ! $? -eq 0 ]; then
-        log_to_file "Backup failed with exit code: $?"
+    tar -czf "$backup_file" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
+    local rc=$?
+    if [[ $rc -ne 0 ]]; then
+        log_to_file "Backup failed with exit code: $rc"
         echo -e "${RED}Backup failed${RESET}"
-        return 1
+        return $rc
     fi
 
     log_to_file "Backup created successfully: $backup_file"
