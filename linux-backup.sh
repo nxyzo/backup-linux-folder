@@ -79,7 +79,7 @@ function create_LOCAL_TEMP_BACKUP_DIR() {
 }
 
 function delete_LOCAL_TEMP_BACKUP_DIR() {
-    [[ -n "$LOCAL_TEMP_BACKUP_DIR" != "/" ]] || return 1
+    [[ -n "$LOCAL_TEMP_BACKUP_DIR" && "$LOCAL_TEMP_BACKUP_DIR" != "/" ]] || return 1
     rm -rf -- "$LOCAL_TEMP_BACKUP_DIR"
     log_to_file "Deleting temp backup dir"
 }
