@@ -49,8 +49,8 @@ function log_to_file() {
 function check_if_BACKUP_SOURCE_PATH_exists() {
     if [[ ! -e "$BACKUP_SOURCE_PATH" ]]; then
         log_to_file "The Directory doesn´t exist"
-        log_to_file "The Backup got cancel"
-        echo -e "${RED}The Directory doesn´t exist\nThe Backup got cancel${RESET}"
+        log_to_file "Backup was cancelled"
+        echo -e "${RED}The Directory doesn´t exist\nBackup was cancelled${RESET}"
         return 1
     fi
 }
@@ -68,7 +68,8 @@ function create_LOCAL_TEMP_BACKUP_DIR() {
 }
 
 function delete_LOCAL_TEMP_BACKUP_DIR() {
-    rm -r "$LOCAL_TEMP_BACKUP_DIR"
+    [[ -n "$LOCAL_TEMP_BACKUP_DIR" != "/" ]] || return 1
+    rm -rf -- "$LOCAL_TEMP_BACKUP_DIR"
     log_to_file "Deleting temp backup dir"
 }
 
@@ -79,7 +80,7 @@ function backup_BACKUP_SOURCE_PATH() {
 
     tar -czvf "$backup_file" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
     if [ ! $? -eq 0 ]; then
-        log_to_file "The backup exits with error: $?"
+        log_to_file "Backup failed with exit code: $?"
         echo -e "${RED}Backup failed${RESET}"
         return 1
     fi
