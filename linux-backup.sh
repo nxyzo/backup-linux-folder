@@ -58,7 +58,7 @@ function load_env() {
 }
 
 function log_to_file() {
-    echo -e "${BACKUP_TIMESTAMP%/} ${1}" >> "${BACKUP_LOG_FILE}"
+    printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$BACKUP_LOG_FILE"
 }
 
 function check_if_BACKUP_SOURCE_PATH_exists() {
