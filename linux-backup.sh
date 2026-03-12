@@ -218,7 +218,8 @@ function upload_backup_to_s3() {
 load_env
 
 if ! require_vars; then
-    exit $missing
+    exit 1
+fi
 
 if ! check_source_path; then
     exit 1
