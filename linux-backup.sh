@@ -12,8 +12,8 @@ RESET="\e[0m"
 BACKUP_LOG_FILE="${BACKUP_LOG_FILE:-/var/log/backup.log}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
-BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
+BACKUP_FILE=""
 
 # FTP Settings
 REMOTE_BACKUP_TARGET="${REMOTE_BACKUP_TARGET:-FTP}"
@@ -25,6 +25,9 @@ REMOTE_SFTP_PORT="${REMOTE_SFTP_PORT:-22}"
 # S3 Settings
 AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-central-1}"
 
+#
+# functions
+#
 function load_env() {
     if [[ -f "$ENV_FILE" ]]; then
         set -o allexport
@@ -49,6 +52,17 @@ function require_vars() {
 
 function log_to_file() {
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$BACKUP_LOG_FILE"
+}
+
+function cleanup() {
+    local rc=$?
+
+    if [[ $rc -ne 0 ]]; then
+        if [[ -n "${BACKUP_FILE:-}" && -f "$BACKUP_FILE" ]]; then
+            rm -f -- "$BACKUP_FILE"
+            log_to_file "Deleted backup file after error: $BACKUP_FILE"
+        fi
+    fi
 }
 
 function check_source_path() {
@@ -81,9 +95,9 @@ function delete_LOCAL_TEMP_BACKUP_DIR() {
 function create_backup() {
     log_to_file "Starting backup from ${BACKUP_SOURCE_PATH}/${BACKUP_BASE_DIR}"
 
-    local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
+    BACKUP_FILE="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
 
-    tar -czf "$backup_file" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
+    tar -czf "$BACKUP_FILE" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
     local rc=$?
     if [[ $rc -ne 0 ]]; then
         log_to_file "Backup failed with exit code: $rc"
@@ -91,21 +105,19 @@ function create_backup() {
         return "$rc"
     fi
 
-    log_to_file "Backup created successfully: $backup_file"
-    echo -e "${GREEN}Backup created: $backup_file${RESET}"
+    log_to_file "Backup created successfully: $BACKUP_FILE"
+    echo -e "${GREEN}Backup created: $BACKUP_FILE${RESET}"
 }
 
 function upload_backup_to_ftp() {
-    local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
-
-    if [[ ! -f "$backup_file" ]]; then
-        echo -e "${RED}Backup file not found: $backup_file${RESET}"
-        log_to_file "FTP upload failed: backup file not found: $backup_file"
+    if [[ ! -f "$BACKUP_FILE" ]]; then
+        echo -e "${RED}Backup file not found: $BACKUP_FILE${RESET}"
+        log_to_file "FTP upload failed: backup file not found: $BACKUP_FILE"
         return 1
     fi
 
     if [[ -z "${REMOTE_FTP_HOSTNAME:-}" || -z "${REMOTE_FTP_USERNAME:-}" || -z "${REMOTE_FTP_PASSWORD:-}" || -z "${REMOTE_FTP_TARGET_DIRECTORY:-}" ]]; then
-        echo -e "${RED}FTP configuration incomplete${RESET}"
+        echo -e "${RED}FTP configuration incomplete (hostname/username/password/target dir missing)${RESET}"
         log_to_file "FTP upload failed: incomplete FTP config"
         return 1
     fi
@@ -117,7 +129,7 @@ function upload_backup_to_ftp() {
     log_to_file "Uploading backup via FTP to ${REMOTE_FTP_USERNAME}@${REMOTE_FTP_HOSTNAME}:${REMOTE_FTP_TARGET_DIRECTORY}"
     echo -e "${BLUE}Uploading backup to FTP...${RESET}"
 
-    if ! curl -T "$backup_file" -u "$REMOTE_FTP_USERNAME:$REMOTE_FTP_PASSWORD" "$ftp_url"; then
+    if ! curl -T "$BACKUP_FILE" -u "$REMOTE_FTP_USERNAME:$REMOTE_FTP_PASSWORD" "$ftp_url"; then
         echo -e "${RED}FTP upload failed${RESET}"
         log_to_file "FTP upload failed"
         return 1
@@ -128,16 +140,14 @@ function upload_backup_to_ftp() {
 }
 
 function upload_backup_to_sftp() {
-    local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
-
-    if [[ ! -f "$backup_file" ]]; then
-        echo -e "${RED}Backup file not found: $backup_file${RESET}"
-        log_to_file "SFTP upload failed: backup file not found: $backup_file"
+    if [[ ! -f "$BACKUP_FILE" ]]; then
+        echo -e "${RED}Backup file not found: $BACKUP_FILE${RESET}"
+        log_to_file "SFTP upload failed: backup file not found: $BACKUP_FILE"
         return 1
     fi
 
     if [[ -z "${REMOTE_SFTP_HOSTNAME:-}" || -z "${REMOTE_SFTP_USERNAME:-}" || -z "${REMOTE_SFTP_TARGET_DIRECTORY:-}" ]]; then
-        echo -e "${RED}SFTP configuration incomplete${RESET}"
+        echo -e "${RED}SFTP configuration incomplete (hostname/username/target dir missing)${RESET}"
         log_to_file "SFTP upload failed: incomplete SFTP config"
         return 1
     fi
@@ -152,7 +162,7 @@ function upload_backup_to_sftp() {
     if ! sftp "${sftp_opts[@]}" "${REMOTE_SFTP_USERNAME}@${REMOTE_SFTP_HOSTNAME}" <<EOF
 mkdir $REMOTE_SFTP_TARGET_DIRECTORY
 cd $REMOTE_SFTP_TARGET_DIRECTORY
-put $backup_file
+put $BACKUP_FILE
 EOF
     then
         echo -e "${RED}SFTP upload failed${RESET}"
@@ -165,11 +175,9 @@ EOF
 }
 
 function upload_backup_to_s3() {
-    local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
-
-    if [[ ! -f "$backup_file" ]]; then
-        echo -e "${RED}Backup file not found: $backup_file${RESET}"
-        log_to_file "S3 upload failed: backup file not found: $backup_file"
+    if [[ ! -f "$BACKUP_FILE" ]]; then
+        echo -e "${RED}Backup file not found: $BACKUP_FILE${RESET}"
+        log_to_file "S3 upload failed: backup file not found: $BACKUP_FILE"
         return 1
     fi
 
@@ -195,7 +203,7 @@ function upload_backup_to_s3() {
     log_to_file "Uploading backup to S3: ${s3_target}"
     echo -e "${BLUE}Uploading backup to S3...${RESET}"
 
-    if ! aws s3 cp "$backup_file" "$s3_target"; then
+    if ! aws s3 cp "$BACKUP_FILE" "$s3_target"; then
         echo -e "${RED}S3 upload failed${RESET}"
         log_to_file "S3 upload failed"
         return 1
@@ -204,6 +212,12 @@ function upload_backup_to_s3() {
     echo -e "${GREEN}S3 upload successful${RESET}"
     log_to_file "S3 upload finished successfully"
 }
+
+#
+# main
+#
+
+trap cleanup EXIT
 
 load_env
 
