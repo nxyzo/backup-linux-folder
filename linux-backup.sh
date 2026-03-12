@@ -97,7 +97,7 @@ function create_backup() {
 
     BACKUP_FILE="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
 
-    tar -czf "$BACKUP_FILE" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR"
+    tar -czf "$BACKUP_FILE" -C "$BACKUP_SOURCE_PATH" "$BACKUP_BASE_DIR" >> "$BACKUP_LOG_FILE" 2>&1
     local rc=$?
     if [[ $rc -ne 0 ]]; then
         log_to_file "Backup failed with exit code: $rc"
