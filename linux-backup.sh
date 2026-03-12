@@ -18,9 +18,6 @@ ENV_FILE="${SCRIPT_DIR}/.env"
 BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 BACKUP_DAY=$(date +"%Y-%m-%d")
 
-BACKUP_TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-BACKUP_DAY=$(date +"%Y-%m-%d")
-
 REMOTE_BACKUP_TARGET="${REMOTE_BACKUP_TARGET:-FTP}"
 
 REMOTE_FTP_HOSTNAME="$REMOTE_FTP_HOSTNAME"
