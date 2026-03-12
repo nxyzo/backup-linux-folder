@@ -57,16 +57,16 @@ function log_to_file() {
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >> "$BACKUP_LOG_FILE"
 }
 
-function check_if_BACKUP_SOURCE_PATH_exists() {
+function check_source_path() {
     if [[ ! -e "$BACKUP_SOURCE_PATH" ]]; then
-        log_to_file "The Directory doesn´t exist"
+        log_to_file "Directory does not exist"
         log_to_file "Backup was cancelled"
-        echo -e "${RED}The Directory doesn´t exist\nBackup was cancelled${RESET}"
+        echo -e "${RED}Directory does not exist\nBackup was cancelled${RESET}"
         return 1
     fi
 }
 
-function check_if_LOCAL_TEMP_BACKUP_DIR_exists() {
+function check_temp_dir() {
     if [[ ! -e "$LOCAL_TEMP_BACKUP_DIR" ]]; then
         log_to_file "The Temp Directory path: ${LOCAL_TEMP_BACKUP_DIR} doesn´t exist"
         return 1
@@ -84,7 +84,7 @@ function delete_LOCAL_TEMP_BACKUP_DIR() {
     log_to_file "Deleting temp backup dir"
 }
 
-function backup_BACKUP_SOURCE_PATH() {
+function create_backup() {
     log_to_file "Starting backup from ${BACKUP_SOURCE_PATH}${BACKUP_BASE_DIR}"
 
     local backup_file="${LOCAL_TEMP_BACKUP_DIR%/}/${BACKUP_DAY}-${BACKUP_FILENAME}"
@@ -221,28 +221,31 @@ load_env
 if ! require_vars; then
     exit $missing
 
-if ! check_if_BACKUP_SOURCE_PATH_exists; then
+if ! check_source_path; then
     exit 1
 fi
 
-if ! check_if_LOCAL_TEMP_BACKUP_DIR_exists; then
+if ! check_temp_dir; then
     create_LOCAL_TEMP_BACKUP_DIR
 fi
 
-if ! backup_BACKUP_SOURCE_PATH; then
+if ! create_backup; then
     exit 1
 fi
 
 if [[ "$REMOTE_BACKUP_TARGET" == "FTP" ]]; then
-    upload_backup_to_ftp
+    if ! upload_backup_to_ftp; then
+        exit 1
 fi
 
 if [[ "$REMOTE_BACKUP_TARGET" == "SFTP" ]]; then
-    upload_backup_to_sftp
+    if ! upload_backup_to_sftp; then
+        exit 1
 fi
 
 if [[ "$REMOTE_BACKUP_TARGET" == "S3" ]]; then
-    upload_backup_to_s3
+    if ! upload_backup_to_s3; then
+        exit 1
 fi
 
 delete_LOCAL_TEMP_BACKUP_DIR
